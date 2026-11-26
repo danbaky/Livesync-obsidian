@@ -1,0 +1,58 @@
+# Obsidian Self-hosted LiveSync — установка на Debian
+
+Скрипты, которые ставят синхронизацию Obsidian «у себя», без облака.
+
+Для работы нужны две части: **сервер** (CouchDB, хранит зашифрованные данные) и **клиент**
+(плагин Self-hosted LiveSync внутри Obsidian). Один скрипт ставит и то, и другое.
+
+## Быстрый старт (Debian / Ubuntu)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/danbaky/Livesync-obsidian/main/install-obsidian-livesync-all.sh -o install-all.sh
+sudo bash install-all.sh
+```
+
+Скрипт: ставит docker → поднимает CouchDB 3.3 в `/opt/obsidian-livesync` → создаёт базу
+`obsidian` → проверяет доступ и CORS → ставит и включает плагин в найденном хранилище →
+печатает данные для подключения и сохраняет их в `~/.config/obsidian-livesync/server.txt`.
+
+Затем в Obsidian:
+
+1. Настройки → Сторонние плагины → выключить «Ограниченный режим».
+2. Включить «Self-hosted LiveSync».
+3. `Ctrl+P` → «Self-hosted LiveSync: Setup Wizard» → CouchDB → URI `http://127.0.0.1:5984`,
+   база `obsidian`, логин `admin`, пароль из `server.txt`, Passphrase — своя (одна на все устройства).
+
+Второе устройство: тот же плагин, в визарде **«Use the existing remote database»**.
+
+## Параметры
+
+```
+-v, --vault PATH   хранилище Obsidian (по умолчанию ищется в $HOME)
+-n, --dry-run      показать план, ничего не менять
+    --lan          сервер виден в локальной сети (нужно для синка с телефона)
+    --port N       порт CouchDB (по умолчанию 5984)
+    --data DIR     каталог сервера (по умолчанию /opt/obsidian-livesync)
+-t, --tag TAG      версия плагина
+-f, --force        переустановить плагин
+```
+
+Повторный запуск безопасен: пароль не меняется, данные (`data/`) не трогаются.
+
+## Только плагин
+
+Если сервер уже есть: `install-obsidian-livesync-debian.sh` ставит лишь клиент
+(`-d DIR` — офлайн-установка из заранее скачанных `main.js`/`manifest.json`/`styles.css`).
+
+## Чего скрипты не делают
+
+- не ставят Obsidian (нужен `.deb` с obsidian.md);
+- не пишут `data.json` с логином и паролем — их вводят в мастере плагина;
+- не настраивают доступ из интернета: по умолчанию сервер слушает только `127.0.0.1`.
+  Для телефона — `--lan`, для доступа снаружи нужен VPN или TLS-прокси.
+
+## Данные и бэкап
+
+Всё лежит в `/opt/obsidian-livesync/data` (uid 5984). Бэкап — копия этого каталога при
+остановленном контейнере `obsidian-livesync`. Пароль сервера — в `/opt/obsidian-livesync/.env` (600).
+Passphrase E2EE хранится только на устройствах: потерял — данные не восстановить.
