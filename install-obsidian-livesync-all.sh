@@ -4,8 +4,8 @@
 #
 #   sudo bash install-obsidian-livesync-all.sh
 #   sudo bash install-obsidian-livesync-all.sh -v /home/user/Vault     # хранилище вручную
-#   sudo bash install-obsidian-livesync-all.sh --lan                   # сервер виден в локалке
-#                                                                       (для синка с телефона)
+#   sudo bash install-obsidian-livesync-all.sh                         # сервер в локалке + пароль
+#   sudo bash install-obsidian-livesync-all.sh --local                 # только этот ноут
 #   sudo bash install-obsidian-livesync-all.sh -n                      # только план
 #
 # Скрипт можно запускать дважды: он не пересоздаёт данные и не меняет пароль.
@@ -17,7 +17,7 @@ REPO="vrtmrz/obsidian-livesync"
 FALLBACK_TAG="1.0.52"
 MIN_SIZE=200000
 SRV_DIR="/opt/obsidian-livesync"
-BIND="127.0.0.1"
+BIND="0.0.0.0"   # по умолчанию доступен в локальной сети, всегда с паролем
 PORT="5984"
 DB="obsidian"
 VAULT=""; DRY=0; FORCE=0
@@ -34,6 +34,7 @@ while [ $# -gt 0 ]; do
     -n|--dry-run) DRY=1; shift ;;
     -f|--force)  FORCE=1; shift ;;
     --lan)       BIND="0.0.0.0"; shift ;;
+    --local)     BIND="127.0.0.1"; shift ;;
     --port)      PORT="${2:?--port требует номер}"; shift 2 ;;
     --data)      SRV_DIR="${2:?--data требует путь}"; shift 2 ;;
     -h|--help)   sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -344,7 +345,14 @@ if [ "$DRY" = 0 ]; then
          Passphrase: придумай свою — ОДНА на все устройства.
     4. «Test connection» → Save → «Use the existing remote database» на втором устройстве.
 EOF
-  [ "$BIND" = "127.0.0.1" ] && warn "сервер слушает только эту машину: телефон подключится только после перезапуска с --lan"
+  if [ "$BIND" = "127.0.0.1" ]; then
+    warn "режим --local: сервер слушает только эту машину, телефон и второй ПК не подключатся"
+  else
+    ok "сервер слушает ${HOST_SHOWN}:$PORT — доступен в локальной сети, вход по паролю"
+    if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -qi '^Status: active'; then
+      warn "включён ufw: если не подключается, разреши порт — sudo ufw allow $PORT/tcp"
+    fi
+  fi
   ok "всё на месте"
 else
   warn "(dry-run) ничего не изменено"
