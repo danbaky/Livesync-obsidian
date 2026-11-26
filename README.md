@@ -20,8 +20,12 @@ sudo bash install-all.sh
 
 1. Настройки → Сторонние плагины → выключить «Ограниченный режим».
 2. Включить «Self-hosted LiveSync».
-3. `Ctrl+P` → «Self-hosted LiveSync: Setup Wizard» → CouchDB → URI `http://127.0.0.1:5984`,
-   база `obsidian`, логин `admin`, пароль из `server.txt`, Passphrase — своя (одна на все устройства).
+3. `Ctrl+P` → «Self-hosted LiveSync: Setup Wizard» → CouchDB → URI — адрес, который скрипт
+   напечатал в конце установки (`http://<ip-ноута>:5984`); база `obsidian`, логин `admin`,
+   пароль из `server.txt`, Passphrase — своя (одна на все устройства).
+
+`127.0.0.1` в визарде годится только для Obsidian на этом же ноуте (и только в режиме `--local`).
+Телефону или второму компьютеру нужен адрес из локальной сети — тот же, что напечатан в конце.
 
 Второе устройство: тот же плагин, в визарде **«Use the existing remote database»**.
 
